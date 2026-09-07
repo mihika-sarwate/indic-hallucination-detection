@@ -1,6 +1,6 @@
 import os
 import json
-import pandas as pd
+import csv
 from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,22 +55,25 @@ def get_samples(limit: int = 10):
         }]
         
     try:
-        df = pd.read_csv(PHASE2_DATASET)
         verified_ids = load_verified_ids()
+        samples = []
         
-        # Filter out already verified samples
-        unverified_df = df[~df["sample_id"].isin(verified_ids)]
-        
-        # Take the top N
-        samples = unverified_df.head(limit).to_dict(orient="records")
-        # Ensure NaNs are replaced with None
-        for s in samples:
-            for k, v in s.items():
-                if pd.isna(v):
-                    s[k] = None
-                    
+        with open(PHASE2_DATASET, mode="r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get("sample_id") not in verified_ids:
+                    # Convert empty strings to None (similar to pd.isna)
+                    for k, v in row.items():
+                        if v == "":
+                            row[k] = None
+                    samples.append(row)
+                    if len(samples) >= limit:
+                        break
+                        
         return samples
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/verify")
