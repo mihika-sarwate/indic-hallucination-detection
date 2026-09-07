@@ -1,0 +1,4 @@
+{"sample_id": "f3016de8979917da101b1fb17bfb671f72adbd2dcfbca46b4c7079973be901b0", "label_faithfulness": "uncertain", "comments": ""}
+{"sample_id": "f3016de8979917da101b1fb17bfb671f72adbd2dcfbca46b4c7079973be901b0", "label_faithfulness": "hallucinated", "comments": ""}
+{"sample_id": "6c4ab1619fab635c7a1fe47e09b20b8b725c73fd1726c4af3d5f00011e158c3a", "label_faithfulness": "faithful", "comments": ""}
+{"sample_id": "6c4ab1619fab635c7a1fe47e09b20b8b725c73fd1726c4af3d5f00011e158c3a", "label_faithfulness": "hallucinated", "comments": ""}
