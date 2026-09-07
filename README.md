@@ -4,14 +4,16 @@ A multilingual benchmark and classifier pipeline for detecting hallucinations in
 
 ## Phase
 
-**Phase 1 — Dataset Preparation** (current)
+**Phase 1 — Dataset Preparation** (completed)
+Builds a clean, reproducible `context + question + reference_answer` dataset.
 
-Builds a clean, reproducible `context + question + reference_answer` dataset ready for Phase 2 hallucination generation.
+**Phase 2 — Hallucination Generation** (completed)
+Faithful and hallucinated LLM answer generation with 4 deterministic injection strategies using the Groq API.
+
+**Phase 3 — Human Verification** (completed)
+React/Vite dashboard connected to a FastAPI backend for manual review and weak label validation.
 
 Later phases (not implemented yet):
-
-- Phase 2: Faithful and hallucinated LLM answer generation
-- Phase 3: Weak labeling (Groq API) and human verification
 - Phase 4: MuRIL / IndicBERT classifier training and evaluation
 
 ---
