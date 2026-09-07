@@ -66,6 +66,11 @@ def get_samples(limit: int = 10):
                     for k, v in row.items():
                         if v == "":
                             row[k] = None
+                    if "label" in row and row["label"] is not None:
+                        try:
+                            row["label"] = int(row["label"])
+                        except ValueError:
+                            pass
                     samples.append(row)
                     if len(samples) >= limit:
                         break
