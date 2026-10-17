@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Database, Activity, CheckCircle, Search, Bell, Layers, Cpu, BarChart } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Verification from './pages/Verification';

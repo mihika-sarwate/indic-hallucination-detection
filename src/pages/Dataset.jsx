@@ -17,7 +17,17 @@ const Dataset = () => {
       const res = await axios.get(url);
       setData(res.data);
     } catch (err) {
-      console.error(err);
+      // Fallback for static hosting like GitHub Pages
+      try {
+        const staticRes = await axios.get('./samples.json');
+        let filtered = staticRes.data || [];
+        if (lang !== 'All') {
+          filtered = filtered.filter(item => item.language === lang);
+        }
+        setData(filtered);
+      } catch (fallbackErr) {
+        console.error('Failed to load dataset:', fallbackErr);
+      }
     }
     setLoading(false);
   };

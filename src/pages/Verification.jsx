@@ -17,7 +17,15 @@ const Verification = () => {
       const res = await axios.get('/api/samples?limit=10');
       setSamples(res.data);
     } catch (err) {
-      setError(err.message);
+      // Static fallback for GitHub Pages
+      try {
+        const storedReviewed = JSON.parse(localStorage.getItem('reviewed_ids') || '[]');
+        const staticRes = await axios.get('./samples.json');
+        const remaining = (staticRes.data || []).filter(s => !storedReviewed.includes(s.sample_id));
+        setSamples(remaining.slice(0, 10));
+      } catch (staticErr) {
+        setError(err.message);
+      }
     }
     setLoading(false);
   };
@@ -31,15 +39,23 @@ const Verification = () => {
         sample_id: current.sample_id,
         label_faithfulness: label
       });
-      // Remove verified sample from list
-      setSamples(prev => prev.slice(1));
-      
-      // Fetch more if we run out
-      if (samples.length <= 2) {
-        fetchSamples();
-      }
     } catch (err) {
-      alert("Failed to submit verification: " + err.message);
+      // Save locally if on GitHub Pages
+      const stored = JSON.parse(localStorage.getItem('verified_submissions') || '[]');
+      stored.push({ sample_id: current.sample_id, label_faithfulness: label, timestamp: new Date().toISOString() });
+      localStorage.setItem('verified_submissions', JSON.stringify(stored));
+
+      const reviewedIds = JSON.parse(localStorage.getItem('reviewed_ids') || '[]');
+      reviewedIds.push(current.sample_id);
+      localStorage.setItem('reviewed_ids', JSON.stringify(reviewedIds));
+    }
+    
+    // Remove verified sample from list
+    setSamples(prev => prev.slice(1));
+    
+    // Fetch more if we run out
+    if (samples.length <= 2) {
+      fetchSamples();
     }
   };
 
