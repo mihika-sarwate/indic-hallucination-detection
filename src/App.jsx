@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Database, Activity, CheckCircle, Search, Bell, Layers } from 'lucide-react';
+import { LayoutDashboard, Database, Activity, CheckCircle, Search, Bell, Layers, Cpu, BarChart } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import Verification from './pages/Verification';
+import Dataset from './pages/Dataset';
+import Generation from './pages/Generation';
+import Training from './pages/Training';
+import Evaluation from './pages/Evaluation';
 import './index.css';
 
 const Sidebar = () => {
@@ -10,10 +14,12 @@ const Sidebar = () => {
   const location = useLocation();
 
   const navItems = [
-    { id: '/', icon: <LayoutDashboard size={20} /> },
-    { id: '/dataset', icon: <Database size={20} /> },
-    { id: '/generation', icon: <Activity size={20} /> },
-    { id: '/verification', icon: <CheckCircle size={20} /> },
+    { id: '/', icon: <LayoutDashboard size={20} />, label: "Phase 1: Overview" },
+    { id: '/dataset', icon: <Database size={20} />, label: "Dataset Management" },
+    { id: '/generation', icon: <Activity size={20} />, label: "Phase 2: Generation" },
+    { id: '/verification', icon: <CheckCircle size={20} />, label: "Phase 3: Verification" },
+    { id: '/training', icon: <Cpu size={20} />, label: "Phase 4: Training" },
+    { id: '/evaluation', icon: <BarChart size={20} />, label: "Phase 5: Evaluation" },
   ];
 
   return (
@@ -27,6 +33,7 @@ const Sidebar = () => {
             key={item.id}
             className={`nav-item ${location.pathname === item.id ? 'active' : ''}`}
             onClick={() => navigate(item.id)}
+            title={item.label}
           >
             {item.icon}
           </div>
@@ -43,6 +50,8 @@ const TopBar = () => {
     '/dataset': 'Dataset Management',
     '/generation': 'Phase 2 Generation',
     '/verification': 'Human Verification',
+    '/training': 'Model Training',
+    '/evaluation': 'Evaluation & Comparison',
   };
   
   const title = titleMap[location.pathname] || 'Dashboard';
@@ -82,9 +91,11 @@ function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/dataset" element={<div className="promo-card"><h2 className="promo-title">Dataset View</h2><p className="promo-text">Mock view for dataset.</p></div>} />
-          <Route path="/generation" element={<div className="promo-card"><h2 className="promo-title">Generation</h2><p className="promo-text">Trigger LLM pipeline.</p></div>} />
+          <Route path="/dataset" element={<Dataset />} />
+          <Route path="/generation" element={<Generation />} />
           <Route path="/verification" element={<Verification />} />
+          <Route path="/training" element={<Training />} />
+          <Route path="/evaluation" element={<Evaluation />} />
         </Routes>
       </Layout>
     </Router>

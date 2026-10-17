@@ -91,3 +91,24 @@ def verify_sample(req: VerificationRequest):
         f.write(json.dumps(review, ensure_ascii=False) + "\n")
         
     return {"status": "success", "message": "Verification saved"}
+
+@app.get("/api/dataset")
+def get_dataset(limit: int = 50, lang: str = None):
+    if not PHASE2_DATASET.exists():
+        return []
+        
+    try:
+        samples = []
+        with open(PHASE2_DATASET, mode="r", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if lang and row.get("language") != lang:
+                    continue
+                samples.append(row)
+                if len(samples) >= limit:
+                    break
+        return samples
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
