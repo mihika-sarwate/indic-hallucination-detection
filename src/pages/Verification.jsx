@@ -21,7 +21,9 @@ const Verification = () => {
       try {
         const storedReviewed = JSON.parse(localStorage.getItem('reviewed_ids') || '[]');
         const staticRes = await axios.get('./samples.json');
-        const remaining = (staticRes.data || []).filter(s => !storedReviewed.includes(s.sample_id));
+        const remaining = (staticRes.data || [])
+          .map(s => ({ ...s, label: Number(s.label) }))
+          .filter(s => !storedReviewed.includes(`${s.sample_id}|${s.label}`));
         setSamples(remaining.slice(0, 10));
       } catch (staticErr) {
         setError(err.message);
@@ -37,16 +39,17 @@ const Verification = () => {
     try {
       await axios.post('/api/verify', {
         sample_id: current.sample_id,
+        label: current.label,
         label_faithfulness: label
       });
     } catch (err) {
       // Save locally if on GitHub Pages
       const stored = JSON.parse(localStorage.getItem('verified_submissions') || '[]');
-      stored.push({ sample_id: current.sample_id, label_faithfulness: label, timestamp: new Date().toISOString() });
+      stored.push({ sample_id: current.sample_id, label: current.label, label_faithfulness: label, timestamp: new Date().toISOString() });
       localStorage.setItem('verified_submissions', JSON.stringify(stored));
 
       const reviewedIds = JSON.parse(localStorage.getItem('reviewed_ids') || '[]');
-      reviewedIds.push(current.sample_id);
+      reviewedIds.push(`${current.sample_id}|${current.label}`);
       localStorage.setItem('reviewed_ids', JSON.stringify(reviewedIds));
     }
     

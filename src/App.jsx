@@ -63,7 +63,7 @@ const TopBar = () => {
         <button className="icon-btn"><Search size={20} /></button>
         <button className="icon-btn"><Bell size={20} /></button>
         <div className="user-profile">
-          <img src="https://ui-avatars.com/api/?name=Reviewer+One&background=E0E8F8&color=1A1D21" alt="avatar" className="avatar" />
+          <div className="avatar" style={{ background: '#E0E8F8', color: '#1A1D21', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 13 }}>RV</div>
           <span className="user-name">Reviewer</span>
         </div>
       </div>

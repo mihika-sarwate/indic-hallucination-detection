@@ -1,157 +1,63 @@
-import nbformat as nbf
+"""Generate the Phase 4 and Phase 5 notebooks (Colab / Kaggle friendly wrappers around the scripts)."""
+
 import os
 
-os.makedirs('notebooks', exist_ok=True)
+import nbformat as nbf
+
+os.makedirs("notebooks", exist_ok=True)
 
 # Phase 4 Notebook
 nb4 = nbf.v4.new_notebook()
-
-nb4.cells.append(nbf.v4.new_markdown_cell('# Phase 4: Model Training\nFine-tuning MuRIL and IndicBERT for Binary Hallucination Classification.'))
-
-nb4.cells.append(nbf.v4.new_code_cell('''!pip install -r ../requirements-ml.txt'''))
-
-nb4.cells.append(nbf.v4.new_code_cell('''import pandas as pd
-from datasets import Dataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer, DataCollatorWithPadding
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-import torch
-import numpy as np
-
-# Load dataset
-df = pd.read_csv("../data/phase2/phase2_dataset.csv")
-# Filter out unverified or bad rows if needed. We assume 'label' is 0 or 1.
-df = df.dropna(subset=['label'])
-df['label'] = df['label'].astype(int)
-
-# Create text input
-# Format: [CLS] Question: {q} Context: {c} [SEP] Answer: {a} [SEP]
-df['text'] = "Question: " + df['question'] + " Context: " + df['context'] + " Answer: " + df['generated_answer']
-
-# Split Data
-train_df, val_df = train_test_split(df, test_size=0.2, random_state=42)
-
-train_dataset = Dataset.from_pandas(train_df)
-val_dataset = Dataset.from_pandas(val_df)
-'''))
-
-nb4.cells.append(nbf.v4.new_markdown_cell('## Fine-tuning MuRIL'))
-
-nb4.cells.append(nbf.v4.new_code_cell('''model_name = "google/muril-base-cased"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-def tokenize_function(examples):
-    return tokenizer(examples["text"], padding="max_length", truncation=True, max_length=512)
-
-tokenized_train = train_dataset.map(tokenize_function, batched=True)
-tokenized_val = val_dataset.map(tokenize_function, batched=True)
-
-model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
-
-def compute_metrics(eval_pred):
-    logits, labels = eval_pred
-    predictions = np.argmax(logits, axis=-1)
-    precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average='binary')
-    acc = accuracy_score(labels, predictions)
-    return {"accuracy": acc, "f1": f1, "precision": precision, "recall": recall}
-
-training_args = TrainingArguments(
-    output_dir="../models/muril_hallucination",
-    evaluation_strategy="epoch",
-    save_strategy="epoch",
-    learning_rate=2e-5,
-    per_device_train_batch_size=8,
-    per_device_eval_batch_size=8,
-    num_train_epochs=3,
-    weight_decay=0.01,
-    load_best_model_at_end=True,
-)
-
-trainer = Trainer(
-    model=model,
-    args=training_args,
-    train_dataset=tokenized_train,
-    eval_dataset=tokenized_val,
-    tokenizer=tokenizer,
-    compute_metrics=compute_metrics,
-)
-
-trainer.train()
-'''))
-
-nb4.cells.append(nbf.v4.new_code_cell('''# Save final model
-trainer.save_model("../models/muril_hallucination_final")
-'''))
-
-with open('notebooks/phase4_model_training.ipynb', 'w') as f:
-    nbf.write(nb4, f)
+nb4.cells.append(nbf.v4.new_markdown_cell(
+    "# Phase 4: Model Training\n"
+    "Fine-tunes MuRIL (`google/muril-base-cased`) and IndicBERT v2 (`ai4bharat/IndicBERTv2-MLM-only`) as binary\n"
+    "faithful / hallucinated sentence-pair classifiers on the Phase 2 dataset.\n\n"
+    "* Input: `[CLS] question [SEP] context [SEP] candidate answer [SEP]`, 256 tokens, only the context is truncated.\n"
+    "* Splits: the Phase 1 `split` column (train / validation / test); rows flagged by the quality guard are excluded.\n"
+    "* Stage 1: one epoch on 3,000 rule-based pairs from the Phase 1 train split; stage 2: the LLM-generated pairs.\n"
+    "* AdamW (lr 3e-5), cross-entropy, fp16, batch 8, 1 + 8 epochs, best epoch by validation macro-F1, 3 seeds.\n"
+    "* Baselines: lexical-overlap rule and TF-IDF + logistic regression.\n\n"
+    "All logic lives in `src/train_phase45.py`; this notebook runs it and shows the training logs."))
+nb4.cells.append(nbf.v4.new_code_cell("!pip install -q -r ../requirements-ml.txt"))
+nb4.cells.append(nbf.v4.new_code_cell("import torch\nprint('CUDA available:', torch.cuda.is_available())"))
+nb4.cells.append(nbf.v4.new_code_cell("!cd .. && python src/train_phase45.py"))
+nb4.cells.append(nbf.v4.new_code_cell(
+    "import json\nimport pandas as pd\n\n"
+    "res = json.load(open('../reports/phase45/phase45_results.json', encoding='utf-8'))\n"
+    "print('Rows used:', res['data']['rows_used_by_split'])\n"
+    "for name, m in res['models'].items():\n"
+    "    print(f\"\\n{name} - best epochs per seed: {[r['best_epoch'] for r in m['runs']]}\")\n"
+    "    display(pd.DataFrame(m['runs'][0]['history']).round(4))"))
+nbf.write(nb4, "notebooks/phase4_model_training.ipynb")
 
 # Phase 5 Notebook
 nb5 = nbf.v4.new_notebook()
+nb5.cells.append(nbf.v4.new_markdown_cell(
+    "# Phase 5: Evaluation & Comparison\n"
+    "Reads `reports/phase45/phase45_results.json` (written by `src/train_phase45.py`) and reports test-split results by\n"
+    "language, by hallucination type and across languages, plus an error analysis of the test predictions."))
+nb5.cells.append(nbf.v4.new_code_cell(
+    "import json\nimport pandas as pd\n\n"
+    "res = json.load(open('../reports/phase45/phase45_results.json', encoding='utf-8'))\n"
+    "rows = []\n"
+    "for name, m in res['models'].items():\n"
+    "    for lc, v in m['summary']['by_language'].items():\n"
+    "        rows.append({'model': name, 'language': lc, **{k: round(v[k]['mean'], 3) for k in ('accuracy', 'precision', 'recall', 'f1')}})\n"
+    "for name, b in res['baselines'].items():\n"
+    "    for lc, v in b['by_language'].items():\n"
+    "        rows.append({'model': name, 'language': lc, **{k: round(v[k], 3) for k in ('accuracy', 'precision', 'recall', 'f1')}})\n"
+    "pd.DataFrame(rows)"))
+nb5.cells.append(nbf.v4.new_code_cell(
+    "pd.DataFrame({name: {s: round(v['mean'], 3) for s, v in m['summary']['by_strategy_recall'].items()}\n"
+    "              for name, m in res['models'].items()})"))
+nb5.cells.append(nbf.v4.new_code_cell(
+    "cl = res.get('cross_lingual')\n"
+    "pd.DataFrame(cl['f1']).T.round(3) if cl else 'cross-lingual run skipped'"))
+nb5.cells.append(nbf.v4.new_code_cell(
+    "pred = pd.read_csv('../reports/phase45/test_predictions.csv')\n"
+    "errors = pred[pred['label'] != pred['pred_MuRIL']]\n"
+    "print(len(errors), 'MuRIL errors on', len(pred), 'test rows')\n"
+    "errors[['language_code', 'label', 'injection_strategy', 'question', 'reference_answer', 'generated_answer']].head(20)"))
+nbf.write(nb5, "notebooks/phase5_evaluation.ipynb")
 
-nb5.cells.append(nbf.v4.new_markdown_cell('# Phase 5: Evaluation & Comparison\nEvaluating the trained models on Hindi, Marathi, and Tamil.'))
-
-nb5.cells.append(nbf.v4.new_code_cell('''import pandas as pd
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-from sklearn.metrics import classification_report, confusion_matrix
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Load dataset
-df = pd.read_csv("../data/phase2/phase2_dataset.csv")
-df = df.dropna(subset=['label'])
-df['label'] = df['label'].astype(int)
-df['text'] = "Question: " + df['question'] + " Context: " + df['context'] + " Answer: " + df['generated_answer']
-
-# Load Model
-model_path = "../models/muril_hallucination_final"
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForSequenceClassification.from_pretrained(model_path)
-model.eval()
-
-if torch.cuda.is_available():
-    model = model.to('cuda')
-'''))
-
-nb5.cells.append(nbf.v4.new_code_cell('''def predict(texts):
-    inputs = tokenizer(texts, padding=True, truncation=True, max_length=512, return_tensors="pt")
-    if torch.cuda.is_available():
-        inputs = {k: v.to('cuda') for k, v in inputs.items()}
-    with torch.no_grad():
-        outputs = model(**inputs)
-    predictions = torch.argmax(outputs.logits, dim=-1)
-    return predictions.cpu().numpy()
-
-# Note: In a real scenario, evaluate on the test split, not the entire dataset.
-# We predict in batches
-batch_size = 16
-predictions = []
-for i in range(0, len(df), batch_size):
-    batch_texts = df['text'].iloc[i:i+batch_size].tolist()
-    preds = predict(batch_texts)
-    predictions.extend(preds)
-
-df['prediction'] = predictions
-'''))
-
-nb5.cells.append(nbf.v4.new_code_cell('''print("Overall Classification Report:")
-print(classification_report(df['label'], df['prediction'], target_names=['Faithful', 'Hallucinated']))
-
-for lang in df['language'].unique():
-    print(f"--- Language: {lang} ---")
-    lang_df = df[df['language'] == lang]
-    if len(lang_df) > 0:
-        print(classification_report(lang_df['label'], lang_df['prediction'], target_names=['Faithful', 'Hallucinated']))
-
-# Error analysis by injection strategy
-print("--- Error Analysis by Injection Strategy ---")
-error_df = df[df['label'] != df['prediction']]
-strategy_counts = error_df['injection_strategy'].value_counts()
-print(strategy_counts)
-'''))
-
-with open('notebooks/phase5_evaluation.ipynb', 'w') as f:
-    nbf.write(nb5, f)
-
-print("Notebooks created successfully.")
+print("Notebooks generated successfully.")

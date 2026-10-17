@@ -1,0 +1,180 @@
+{
+  "sample_size": 120,
+  "design": {
+    "per_language_faithful": 20,
+    "per_language_per_strategy_hallucinated": 5,
+    "seed": 42,
+    "source": "Phase 2 rows not flagged by the quality guard"
+  },
+  "judge_model": "openai/gpt-oss-120b",
+  "judge_unparsed_or_error": 0,
+  "judge_vs_weak": {
+    "n": 120,
+    "agreement": 0.9,
+    "cohen_kappa": 0.8
+  },
+  "by_language": {
+    "hi": {
+      "n": 40,
+      "agreement": 0.975,
+      "cohen_kappa": 0.95
+    },
+    "mr": {
+      "n": 40,
+      "agreement": 0.85,
+      "cohen_kappa": 0.7
+    },
+    "ta": {
+      "n": 40,
+      "agreement": 0.875,
+      "cohen_kappa": 0.75
+    }
+  },
+  "by_strategy": {
+    "entity_substitution": {
+      "n": 15,
+      "judge_confirms_hallucinated": 0.8666666666666667
+    },
+    "numeric_date_corruption": {
+      "n": 15,
+      "judge_confirms_hallucinated": 0.8666666666666667
+    },
+    "unsupported_claim_addition": {
+      "n": 15,
+      "judge_confirms_hallucinated": 0.7333333333333333
+    },
+    "contradicted_fact": {
+      "n": 15,
+      "judge_confirms_hallucinated": 1.0
+    }
+  },
+  "faithful_rows": {
+    "n": 60,
+    "agreement": 0.9333333333333333,
+    "cohen_kappa": null
+  },
+  "disagreements": [
+    {
+      "sample_id": "a5066724be3995ec13bafb197ec66a6e30a0d14150ee7bc4c6101952a2562fba",
+      "language_code": "hi",
+      "label": 0,
+      "injection_strategy": null,
+      "question": "ऐसा माना जाता है कि सर्केडियन लय का विकास किसकी सुरक्षा के लिए हुआ?",
+      "reference_answer": "प्रतिकृति डीएनए",
+      "generated_answer": "प्रतिकृति डीएनए",
+      "judge_label": "hallucinated"
+    },
+    {
+      "sample_id": "06d0808a26eeef2c6e9655465fff5762ad48f3033753a8c6e1c76344dc3c986d",
+      "language_code": "mr",
+      "label": 0,
+      "injection_strategy": null,
+      "question": "कोणत्या प्रकारच्या ऍनेलिड्समध्ये नुकल अवयव असतात?",
+      "reference_answer": "पॉलीचेट्समध्ये",
+      "generated_answer": "पॉलीचेट्समध्ये",
+      "judge_label": "hallucinated"
+    },
+    {
+      "sample_id": "853b6811654905c5935e260cb0e5d15c015b11c485960c5cc0ba3784e72e6198",
+      "language_code": "mr",
+      "label": 1,
+      "injection_strategy": "entity_substitution",
+      "question": "यकृताचा कर्करोग किंवा पोटाचा कर्करोग यासारखे कर्करोग कशाशी जोडलेले आढळले?",
+      "reference_answer": "कर्करोगजन्य संरक्षित पदार्थांच्या सेवनाशी संबंधित",
+      "generated_answer": "परजीवी संसर्गाशी संबंधित",
+      "judge_label": "faithful"
+    },
+    {
+      "sample_id": "9228adb9e26ceeaf4c535982bacd64bc63ee36c220a9f2b579cfb76b0848fdfa",
+      "language_code": "mr",
+      "label": 1,
+      "injection_strategy": "entity_substitution",
+      "question": "सेंट लुईस येथील वॉशिंग्टन विद्यापीठासाठी सुरुवातीला विचारात घेतलेल्या नावांपैकी कोणते नाव होते?",
+      "reference_answer": "एलियट सेमिनरी",
+      "generated_answer": "वॉशिंग्टन इन्स्टिट्यूट",
+      "judge_label": "faithful"
+    },
+    {
+      "sample_id": "1cb3899de82f342efae38c12350fc3d16ad5fbfa90ad27c2b75c1f061eaead56",
+      "language_code": "mr",
+      "label": 1,
+      "injection_strategy": "numeric_date_corruption",
+      "question": "त्यांच्या उच्च उत्पादनामुळे, एलईडी दिवे कोठे उपयुक्त आहेत?",
+      "reference_answer": "कारच्या उच्च-माउंट ब्रेक लाइट्स,",
+      "generated_answer": "बस आणि ट्रकच्या नैसर्गिक ब्रेक लाइट्समध्ये.",
+      "judge_label": "faithful"
+    },
+    {
+      "sample_id": "8597cdc4b634e06a9df85a89df22241f5c81cfc97ff0131e9bca7433b80d873c",
+      "language_code": "mr",
+      "label": 1,
+      "injection_strategy": "unsupported_claim_addition",
+      "question": "चॉपिन या गायन विद्यार्थ्याचे नाव काय होते?",
+      "reference_answer": "कोन्स्टँजा ग्लाडकोव्स्का या",
+      "generated_answer": "कोन्स्टँजा ग्लाडकोव्स्का",
+      "judge_label": "faithful"
+    },
+    {
+      "sample_id": "fc4b43e57d458128f76a4e5ffce3eb45d1a205ef9b10a10323374080683b46b6",
+      "language_code": "mr",
+      "label": 1,
+      "injection_strategy": "unsupported_claim_addition",
+      "question": "गौच्या कॅलेंडरचे चिनी नाव काय होते?",
+      "reference_answer": "शौशी ली (授時暦)",
+      "generated_answer": "शौशी ली (授時暦), जे १२८१ मध्ये युआन राजवंशाचे अधिकृत कॅलेंडर म्हणून प्रसारित केले गेले होते.",
+      "judge_label": "faithful"
+    },
+    {
+      "sample_id": "cd63d548163049592d682e3eb906527059b900040c39b25cbab08a7e82147201",
+      "language_code": "ta",
+      "label": 0,
+      "injection_strategy": null,
+      "question": "ஆர்மீனியா ஏன் கிறிஸ்தவத்தை தனது அதிகாரப்பூர்வ மதமாக்கியது?",
+      "reference_answer": "சசானிட்களை மீறியதாகத்",
+      "generated_answer": "கிறிஸ்தவத்தை அதன் மதமாக ஏற்றுக்கொண்ட முதல் மாநிலமாக ஆர்மீனியா மாறியது.",
+      "judge_label": "hallucinated"
+    },
+    {
+      "sample_id": "ca899151434402f1b509917b40b03ecd83bc2cbd8c02cdbd34a0d1c9f7482bc7",
+      "language_code": "ta",
+      "label": 0,
+      "injection_strategy": null,
+      "question": "ஜான் யாரை நம்ப வைக்க முயன்றார்?",
+      "reference_answer": "போப் இன்னசென்ட் ஐ",
+      "generated_answer": "போப் இன்னசென்ட் ஐ",
+      "judge_label": "hallucinated"
+    },
+    {
+      "sample_id": "4b4b17e7ed909d031c037647cba407f38fae7e46a34c0a9e14fe4c0a82dab6e4",
+      "language_code": "ta",
+      "label": 1,
+      "injection_strategy": "numeric_date_corruption",
+      "question": "உக், இத்தாலி மற்றும் ஆஸ்திரேலியாவிற்கு நெஸ்ஐ விநியோகித்த நிறுவனம் எது?",
+      "reference_answer": "மேட்டல்",
+      "generated_answer": "நிண்டெண்டோ",
+      "judge_label": "faithful"
+    },
+    {
+      "sample_id": "8c903581f6aa590436c6915b5ec69ba94cfec784fa025c4bb5d874291ba4fcc6",
+      "language_code": "ta",
+      "label": 1,
+      "injection_strategy": "unsupported_claim_addition",
+      "question": "மூளை எந்த திசுக்களால் சூழப்பட்டுள்ளது?",
+      "reference_answer": "மூளைக்காய்ச்சல்",
+      "generated_answer": "மூளை, மண்டை ஓட்டை பிரிக்கும் மெனிங்கஸ் எனப்படும் இணைப்பு திசு சவ்வுகளால் சூழப்பட்டுள்ளது.",
+      "judge_label": "faithful"
+    },
+    {
+      "sample_id": "429d3e9a2a607715a7a11e0821af23f25bb72ef36117bc268630239087b9510c",
+      "language_code": "ta",
+      "label": 1,
+      "injection_strategy": "unsupported_claim_addition",
+      "question": "பருத்தி லிண்டர்கள் எப்படி இருக்கும்?",
+      "reference_answer": "லிண்டர்கள் நன்றாக, பட்டு போன்ற நார்களாகும், அவை",
+      "generated_answer": "லிண்டர்கள் நன்றாக, பட்டு போன்ற நார்களாகும், அவை பருத்தி செடியின் விதைகளுடன் ஒட்டிக்கொண்டிருக்கின்றன.",
+      "judge_label": "faithful"
+    }
+  ],
+  "human_reviews_total_in_file": 8,
+  "human_reviews_on_sample": 0
+}

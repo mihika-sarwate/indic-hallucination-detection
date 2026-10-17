@@ -24,6 +24,7 @@ VERIFIED_FILE = PHASE3_DIR / "human_verified.jsonl"
 
 class VerificationRequest(BaseModel):
     sample_id: str
+    label: int | None = None  # weak label of the reviewed row (0 faithful, 1 hallucinated)
     label_faithfulness: str  # 'faithful', 'hallucinated', 'uncertain'
     comments: str = ""
 
@@ -35,7 +36,7 @@ def load_verified_ids():
                 if line.strip():
                     try:
                         record = json.loads(line)
-                        verified.add(record.get("sample_id"))
+                        verified.add((record.get("sample_id"), str(record.get("label"))))
                     except Exception:
                         pass
     return verified
@@ -61,7 +62,7 @@ def get_samples(limit: int = 10):
         with open(PHASE2_DATASET, mode="r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row.get("sample_id") not in verified_ids:
+                if (row.get("sample_id"), str(row.get("label"))) not in verified_ids:
                     # Convert empty strings to None (similar to pd.isna)
                     for k, v in row.items():
                         if v == "":

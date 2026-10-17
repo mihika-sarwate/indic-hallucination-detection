@@ -1,0 +1,156 @@
+Rows used: train=388 val=91 test=94 (flagged rows dropped: 27)
+Device: cuda - NVIDIA GeForce RTX 3050 6GB Laptop GPU
+Rule-based stage-1 pairs: 3000 {'rule_reference': 1500, 'rule_random_swap': 756, 'rule_same_passage_swap': 744}
+  Lexical overlap: F1=0.8506 acc=0.8617
+  TF-IDF + LR: F1=0.2069 acc=0.5106
+Fine-tuning MuRIL (seed 42)...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at google/muril-base-cased and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a BertTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [MuRIL seed=42] stage 1 (rule-based pairs): loss=0.6662 val_macroF1=0.5357
+    [MuRIL seed=42] epoch 1: loss=0.6479 val_macroF1=0.6530
+    [MuRIL seed=42] epoch 2: loss=0.6029 val_macroF1=0.5961
+    [MuRIL seed=42] epoch 3: loss=0.5729 val_macroF1=0.7010
+    [MuRIL seed=42] epoch 4: loss=0.5028 val_macroF1=0.7575
+    [MuRIL seed=42] epoch 5: loss=0.4778 val_macroF1=0.7623
+    [MuRIL seed=42] epoch 6: loss=0.4691 val_macroF1=0.7782
+    [MuRIL seed=42] epoch 7: loss=0.4381 val_macroF1=0.7911
+    [MuRIL seed=42] epoch 8: loss=0.4247 val_macroF1=0.7782
+  -> test F1=0.7561 acc=0.7872
+Fine-tuning MuRIL (seed 43)...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at google/muril-base-cased and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a BertTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [MuRIL seed=43] stage 1 (rule-based pairs): loss=0.6827 val_macroF1=0.5524
+    [MuRIL seed=43] epoch 1: loss=0.6732 val_macroF1=0.6736
+    [MuRIL seed=43] epoch 2: loss=0.6539 val_macroF1=0.7723
+    [MuRIL seed=43] epoch 3: loss=0.6115 val_macroF1=0.7147
+    [MuRIL seed=43] epoch 4: loss=0.5594 val_macroF1=0.6723
+    [MuRIL seed=43] epoch 5: loss=0.5052 val_macroF1=0.7598
+    [MuRIL seed=43] epoch 6: loss=0.4740 val_macroF1=0.7284
+    [MuRIL seed=43] epoch 7: loss=0.4670 val_macroF1=0.7147
+    [MuRIL seed=43] epoch 8: loss=0.4575 val_macroF1=0.7108
+  -> test F1=0.6835 acc=0.7340
+Fine-tuning MuRIL (seed 44)...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at google/muril-base-cased and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a BertTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [MuRIL seed=44] stage 1 (rule-based pairs): loss=0.6927 val_macroF1=0.3209
+    [MuRIL seed=44] epoch 1: loss=0.6887 val_macroF1=0.6196
+    [MuRIL seed=44] epoch 2: loss=0.6791 val_macroF1=0.6799
+    [MuRIL seed=44] epoch 3: loss=0.6717 val_macroF1=0.6783
+    [MuRIL seed=44] epoch 4: loss=0.6235 val_macroF1=0.7113
+    [MuRIL seed=44] epoch 5: loss=0.5618 val_macroF1=0.6982
+    [MuRIL seed=44] epoch 6: loss=0.5182 val_macroF1=0.6713
+    [MuRIL seed=44] epoch 7: loss=0.4978 val_macroF1=0.6575
+    [MuRIL seed=44] epoch 8: loss=0.4792 val_macroF1=0.6713
+  -> test F1=0.7059 acc=0.7340
+Fine-tuning IndicBERT (seed 42)...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at ai4bharat/IndicBERTv2-MLM-only and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a PreTrainedTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [IndicBERT seed=42] stage 1 (rule-based pairs): loss=0.6989 val_macroF1=0.3546
+    [IndicBERT seed=42] epoch 1: loss=0.6973 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 2: loss=0.6967 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 3: loss=0.7003 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 4: loss=0.6968 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 5: loss=0.6940 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 6: loss=0.6929 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 7: loss=0.6985 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 8: loss=0.6937 val_macroF1=0.3453
+  -> test F1=0.0000 acc=0.5106
+Fine-tuning IndicBERT (seed 43)...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at ai4bharat/IndicBERTv2-MLM-only and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a PreTrainedTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [IndicBERT seed=43] stage 1 (rule-based pairs): loss=0.6992 val_macroF1=0.3453
+    [IndicBERT seed=43] epoch 1: loss=0.7037 val_macroF1=0.3453
+    [IndicBERT seed=43] epoch 2: loss=0.6968 val_macroF1=0.4854
+    [IndicBERT seed=43] epoch 3: loss=0.6948 val_macroF1=0.3453
+    [IndicBERT seed=43] epoch 4: loss=0.7008 val_macroF1=0.3453
+    [IndicBERT seed=43] epoch 5: loss=0.6987 val_macroF1=0.3453
+    [IndicBERT seed=43] epoch 6: loss=0.6920 val_macroF1=0.3453
+    [IndicBERT seed=43] epoch 7: loss=0.6914 val_macroF1=0.3453
+    [IndicBERT seed=43] epoch 8: loss=0.6903 val_macroF1=0.4120
+  -> test F1=0.5636 acc=0.4894
+Fine-tuning IndicBERT (seed 44)...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at ai4bharat/IndicBERTv2-MLM-only and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a PreTrainedTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [IndicBERT seed=44] stage 1 (rule-based pairs): loss=0.7005 val_macroF1=0.3706
+    [IndicBERT seed=44] epoch 1: loss=0.7002 val_macroF1=0.4981
+    [IndicBERT seed=44] epoch 2: loss=0.6995 val_macroF1=0.3453
+    [IndicBERT seed=44] epoch 3: loss=0.6825 val_macroF1=0.6431
+    [IndicBERT seed=44] epoch 4: loss=0.6720 val_macroF1=0.4944
+    [IndicBERT seed=44] epoch 5: loss=0.6301 val_macroF1=0.6611
+    [IndicBERT seed=44] epoch 6: loss=0.5330 val_macroF1=0.6700
+    [IndicBERT seed=44] epoch 7: loss=0.4798 val_macroF1=0.6997
+    [IndicBERT seed=44] epoch 8: loss=0.4462 val_macroF1=0.7204
+  -> test F1=0.7083 acc=0.7021
+Ablation (LLM pairs only): MuRIL...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at google/muril-base-cased and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a BertTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [MuRIL seed=42] epoch 1: loss=0.6935 val_macroF1=0.3453
+    [MuRIL seed=42] epoch 2: loss=0.6931 val_macroF1=0.3453
+    [MuRIL seed=42] epoch 3: loss=0.6928 val_macroF1=0.3453
+    [MuRIL seed=42] epoch 4: loss=0.6927 val_macroF1=0.3453
+    [MuRIL seed=42] epoch 5: loss=0.6924 val_macroF1=0.3453
+    [MuRIL seed=42] epoch 6: loss=0.6921 val_macroF1=0.3453
+    [MuRIL seed=42] epoch 7: loss=0.6921 val_macroF1=0.3453
+    [MuRIL seed=42] epoch 8: loss=0.6906 val_macroF1=0.3453
+  -> test F1=0.0000 acc=0.5106
+Ablation (LLM pairs only): IndicBERT...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at ai4bharat/IndicBERTv2-MLM-only and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a PreTrainedTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [IndicBERT seed=42] epoch 1: loss=0.6989 val_macroF1=0.3382
+    [IndicBERT seed=42] epoch 2: loss=0.6999 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 3: loss=0.6901 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 4: loss=0.7021 val_macroF1=0.4748
+    [IndicBERT seed=42] epoch 5: loss=0.6965 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 6: loss=0.6956 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 7: loss=0.6944 val_macroF1=0.3453
+    [IndicBERT seed=42] epoch 8: loss=0.6862 val_macroF1=0.3453
+  -> test F1=0.6412 acc=0.5000
+Cross-lingual: MuRIL trained on hi...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at google/muril-base-cased and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a BertTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [MuRIL seed=42] stage 1 (rule-based pairs): loss=0.6914 val_macroF1=0.5833
+    [MuRIL seed=42] epoch 1: loss=0.6924 val_macroF1=0.3651
+    [MuRIL seed=42] epoch 2: loss=0.6882 val_macroF1=0.5971
+    [MuRIL seed=42] epoch 3: loss=0.6803 val_macroF1=0.5500
+    [MuRIL seed=42] epoch 4: loss=0.6616 val_macroF1=0.5764
+    [MuRIL seed=42] epoch 5: loss=0.6413 val_macroF1=0.5764
+    [MuRIL seed=42] epoch 6: loss=0.6206 val_macroF1=0.5238
+    [MuRIL seed=42] epoch 7: loss=0.5967 val_macroF1=0.6122
+    [MuRIL seed=42] epoch 8: loss=0.5860 val_macroF1=0.6703
+Cross-lingual: MuRIL trained on mr...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at google/muril-base-cased and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a BertTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [MuRIL seed=42] stage 1 (rule-based pairs): loss=0.6931 val_macroF1=0.3261
+    [MuRIL seed=42] epoch 1: loss=0.6934 val_macroF1=0.3261
+    [MuRIL seed=42] epoch 2: loss=0.6933 val_macroF1=0.3404
+    [MuRIL seed=42] epoch 3: loss=0.6931 val_macroF1=0.3404
+    [MuRIL seed=42] epoch 4: loss=0.6927 val_macroF1=0.3404
+    [MuRIL seed=42] epoch 5: loss=0.6913 val_macroF1=0.4520
+    [MuRIL seed=42] epoch 6: loss=0.6884 val_macroF1=0.5441
+    [MuRIL seed=42] epoch 7: loss=0.6848 val_macroF1=0.6392
+    [MuRIL seed=42] epoch 8: loss=0.6751 val_macroF1=0.6026
+Cross-lingual: MuRIL trained on ta...
+Some weights of BertForSequenceClassification were not initialized from the model checkpoint at google/muril-base-cased and are newly initialized: ['classifier.bias', 'classifier.weight']
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+You're using a BertTokenizerFast tokenizer. Please note that with a fast tokenizer, using the `__call__` method is faster than using a method to encode the text followed by a call to the `pad` method to get a padded encoding.
+    [MuRIL seed=42] stage 1 (rule-based pairs): loss=0.6932 val_macroF1=0.3182
+    [MuRIL seed=42] epoch 1: loss=0.6935 val_macroF1=0.3478
+    [MuRIL seed=42] epoch 2: loss=0.6928 val_macroF1=0.3478
+    [MuRIL seed=42] epoch 3: loss=0.6926 val_macroF1=0.3478
+    [MuRIL seed=42] epoch 4: loss=0.6915 val_macroF1=0.3478
+    [MuRIL seed=42] epoch 5: loss=0.6897 val_macroF1=0.4222
+    [MuRIL seed=42] epoch 6: loss=0.6826 val_macroF1=0.4886
+    [MuRIL seed=42] epoch 7: loss=0.6672 val_macroF1=0.5971
+    [MuRIL seed=42] epoch 8: loss=0.6467 val_macroF1=0.5971
+
+Saved results to C:\Users\Gary\Desktop\MPSTME\NLP Proj\indic-hallucination-detection-mihika\reports\phase45\phase45_results.json

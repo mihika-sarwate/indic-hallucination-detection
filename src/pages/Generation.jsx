@@ -1,82 +1,94 @@
-import React, { useState } from 'react';
-import { Play, Loader2, CheckCircle2, Server } from 'lucide-react';
+import React from 'react';
+import { Server } from 'lucide-react';
+import useDashboardData, { LANG_NAMES, STRATEGY_NAMES, fmt, card, th, td, Bar, EmptyState } from '../useDashboardData';
 
 const Generation = () => {
-  const [status, setStatus] = useState('idle'); // idle, generating, complete
-  const [progress, setProgress] = useState(0);
+  const { data, error, loading } = useDashboardData();
+  if (loading) return <div style={{ padding: 40 }}>Loading Phase 2 outputs...</div>;
+  if (error) return <div style={{ padding: 40, color: 'red' }}>Error: {error}</div>;
+  const p2 = data.phase2;
+  if (!p2) return <EmptyState phase="Phase 2" />;
 
-  const startGeneration = () => {
-    setStatus('generating');
-    setProgress(0);
-    
-    // Simulate generation progress
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setStatus('complete');
-          return 100;
-        }
-        return prev + Math.floor(Math.random() * 15);
-      });
-    }, 1000);
-  };
+  const maxStrategy = Math.max(...Object.values(p2.strategies));
 
   return (
-    <div style={{ maxWidth: 800 }}>
-      <div style={{ background: 'white', padding: 32, borderRadius: 16, border: '1px solid var(--border-color)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-color)' }}>
+    <div style={{ maxWidth: 1000 }}>
+      <div style={{ ...card, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Server size={24} />
           </div>
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 600, margin: 0, color: 'var(--text-primary)' }}>LLM Hallucination Pipeline</h2>
-            <p style={{ margin: 0, color: 'var(--text-secondary)', marginTop: 4 }}>Generate faithful and hallucinated answers for your dataset using Groq.</p>
+            <h2 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>Phase 2: Faithful and Hallucinated Answer Generation</h2>
+            <p style={{ margin: 0, color: 'var(--text-secondary)', marginTop: 4 }}>
+              {p2.model ? `Groq · ${p2.model}` : 'Groq API'} · {fmt(p2.samples)} source samples → {fmt(p2.rows)} labeled rows
+            </p>
           </div>
         </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 32 }}>
-          <div style={{ padding: 16, border: '1px solid var(--border-color)', borderRadius: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: 8 }}>Input Source</div>
-            <div style={{ fontWeight: 500 }}>data/phase1/cleaned_dataset.csv</div>
-          </div>
-          <div style={{ padding: 16, border: '1px solid var(--border-color)', borderRadius: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: 8 }}>Languages</div>
-            <div style={{ fontWeight: 500 }}>Hindi, Marathi, Tamil</div>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          {[
+            ['Samples', fmt(p2.samples)],
+            ['Rows (label 0 + 1)', fmt(p2.rows)],
+            ['Quality-guard flags', fmt(p2.flagged_total)],
+            ['Temperature (faithful / halluc.)', p2.temperatures || '0.1 / 0.7'],
+          ].map(([k, v]) => (
+            <div key={k} style={{ padding: 16, border: '1px solid var(--border-color)', borderRadius: 12 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', marginBottom: 6 }}>{k}</div>
+              <div style={{ fontWeight: 600, fontSize: 18 }}>{v}</div>
+            </div>
+          ))}
         </div>
+      </div>
 
-        {status === 'idle' && (
-          <button onClick={startGeneration} className="btn-primary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16, fontSize: 16 }}>
-            <Play size={20} />
-            Start Generation Pipeline
-          </button>
-        )}
-
-        {status === 'generating' && (
-          <div style={{ padding: 24, background: '#F7FAFC', borderRadius: 12, border: '1px solid #E2E8F0' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500, color: '#2B6CB0' }}>
-                <Loader2 size={18} className="spin" />
-                Generating responses via Groq API...
+      <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 24, marginBottom: 24 }}>
+        <div style={card}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Rows by language</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead><tr><th style={th}>Language</th><th style={th}>Faithful</th><th style={th}>Hallucinated</th><th style={th}>Flagged</th></tr></thead>
+            <tbody>
+              {['hi', 'mr', 'ta'].map(lc => (
+                <tr key={lc}>
+                  <td style={td}>{LANG_NAMES[lc]}</td>
+                  <td style={td}>{fmt(p2.by_language[lc].faithful)}</td>
+                  <td style={td}>{fmt(p2.by_language[lc].hallucinated)}</td>
+                  <td style={td}>{fmt(p2.by_language[lc].flagged)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div style={card}>
+          <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Injection strategies used</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {Object.keys(STRATEGY_NAMES).map(s => (
+              <div key={s}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 6 }}>
+                  <span>{STRATEGY_NAMES[s]}</span><b>{fmt(p2.strategies[s] || 0)}</b>
+                </div>
+                <Bar value={p2.strategies[s] || 0} max={maxStrategy} />
               </div>
-              <div style={{ fontWeight: 600, color: '#2D3748' }}>{progress}%</div>
-            </div>
-            <div style={{ width: '100%', height: 8, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: `${progress}%`, height: '100%', background: '#3182CE', transition: 'width 0.3s ease' }} />
-            </div>
+            ))}
           </div>
-        )}
+        </div>
+      </div>
 
-        {status === 'complete' && (
-          <div style={{ padding: 24, background: '#F0FFF4', borderRadius: 12, border: '1px solid #C6F6D5', display: 'flex', alignItems: 'center', gap: 12 }}>
-            <CheckCircle2 size={24} color="#38A169" />
-            <div>
-              <div style={{ fontWeight: 600, color: '#276749' }}>Generation Complete!</div>
-              <div style={{ fontSize: 14, color: '#2F855A', marginTop: 4 }}>Dataset successfully saved to data/phase2/phase2_dataset.csv</div>
-            </div>
-          </div>
-        )}
+      <div style={card}>
+        <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Example pairs</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr><th style={th}>Lang</th><th style={th}>Question</th><th style={th}>Reference</th><th style={th}>Faithful</th><th style={th}>Hallucinated</th><th style={th}>Strategy</th></tr></thead>
+          <tbody>
+            {p2.examples.slice(0, 9).map((e, i) => (
+              <tr key={i}>
+                <td style={td}>{e.language_code}</td>
+                <td style={{ ...td, maxWidth: 260 }}>{e.question}</td>
+                <td style={{ ...td, color: '#2B6CB0' }}>{e.reference_answer}</td>
+                <td style={{ ...td, color: '#276749' }}>{e.faithful_answer}</td>
+                <td style={{ ...td, color: '#C53030' }}>{e.hallucinated_answer}</td>
+                <td style={{ ...td, fontSize: 12 }}>{STRATEGY_NAMES[e.injection_strategy]}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

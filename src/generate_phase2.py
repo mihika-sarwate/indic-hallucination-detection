@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -51,7 +52,12 @@ INJECTION_STRATEGIES = [
     "contradicted_fact",
 ]
 
-DEFAULT_MODEL = "qwen/qwen3.6-27b"
+DEFAULT_MODEL = "qwen/qwen3.8-27b"
+DEFAULT_MAX_TOKENS = 512
+
+# Reasoning models (e.g. Qwen3) may emit a <think>...</think> trace before the answer.
+THINK_BLOCK_RE = re.compile(r"<think>.*?</think>", flags=re.DOTALL | re.IGNORECASE)
+LATIN_RE = re.compile(r"[A-Za-z]")
 SCRIPT_NAMES = {
     "hi": "Devanagari script",
     "mr": "Devanagari script",
@@ -206,6 +212,8 @@ def check_hallucination_quality(
     ref_clean = normalize_text(ref_answer) or ""
     gen_clean = normalize_text(gen_answer) or ""
 
+    flags.extend(check_output_format(gen_clean))
+
     if ref_clean == gen_clean:
         flags.append("identical_to_reference")
 
@@ -224,22 +232,56 @@ def check_hallucination_quality(
     return len(flags) > 0, flags
 
 
+def check_output_format(text: str) -> list[str]:
+    """Flag leftover reasoning traces or answers written mostly in Latin script."""
+    flags: list[str] = []
+    if "<think>" in text.lower() or "</think>" in text.lower():
+        flags.append("reasoning_trace_in_output")
+    letters = [c for c in text if c.isalpha()]
+    if letters and sum(1 for c in letters if LATIN_RE.match(c)) / len(letters) > 0.5:
+        flags.append("mostly_latin_script")
+    return flags
+
+
+def check_faithful_quality(gen_answer: str, language_code: str) -> tuple[bool, list[str]]:
+    """Quality guard for the faithful answer: non-empty, clean format, correct script."""
+    if not gen_answer or not gen_answer.strip():
+        return True, ["empty_or_too_short"]
+    gen_clean = normalize_text(gen_answer) or ""
+    flags = check_output_format(gen_clean)
+    is_suspicious, script_flags = check_script_sanity(gen_clean, language_code)
+    if is_suspicious:
+        flags.extend(script_flags)
+    return len(flags) > 0, flags
+
+
+def clean_model_output(content: str) -> str:
+    """Remove <think> blocks; an unclosed <think> means the answer was never reached."""
+    content = THINK_BLOCK_RE.sub("", content)
+    if "<think>" in content.lower():
+        return ""
+    return content.strip().strip('"').strip("'").strip()
+
+
 # ---------------------------------------------------------------------------
 # Groq API Client with Backoff
 # ---------------------------------------------------------------------------
 
 class GroqGenerator:
-    def __init__(self, api_key: str, model: str = DEFAULT_MODEL):
+    def __init__(self, api_key: str, model: str = DEFAULT_MODEL, max_tokens: int = DEFAULT_MAX_TOKENS):
         from groq import Groq
         self.client = Groq(api_key=api_key)
         self.model = model
+        self.max_tokens = max_tokens
+        # Ask reasoning models to hide their trace; dropped if the model rejects it.
+        self.extra_params: dict[str, Any] = {"reasoning_format": "hidden"}
 
     def generate(
         self,
         system_prompt: str,
         user_prompt: str,
         temperature: float = 0.1,
-        max_retries: int = 5,
+        max_retries: int = 10,
     ) -> str:
         """Generate a completion with exponential backoff for rate limits."""
         for attempt in range(max_retries):
@@ -251,15 +293,20 @@ class GroqGenerator:
                         {"role": "user", "content": user_prompt},
                     ],
                     temperature=temperature,
-                    max_tokens=256,
+                    max_tokens=self.max_tokens,
+                    **self.extra_params,
                 )
                 content = response.choices[0].message.content or ""
-                return content.strip().strip('"').strip("'")
+                return clean_model_output(content)
             except Exception as e:
                 err_msg = str(e).lower()
+                if self.extra_params and "reasoning" in err_msg:
+                    print("    [Info] Model does not support reasoning_format; retrying without it.")
+                    self.extra_params = {}
+                    continue
                 is_rate_limit = "429" in err_msg or "rate limit" in err_msg or "too many requests" in err_msg
                 if is_rate_limit:
-                    sleep_time = (2 ** attempt) + np.random.uniform(1.0, 3.0)
+                    sleep_time = min(60.0, (2 ** attempt) + np.random.uniform(1.0, 3.0))
                     print(f"    [RateLimit] Sleeping {sleep_time:.1f}s (attempt {attempt+1}/{max_retries})...")
                     time.sleep(sleep_time)
                 else:
@@ -325,6 +372,22 @@ def select_balanced_subset(
     return result
 
 
+def interleave_for_processing(df: pd.DataFrame, seed: int = SEED) -> pd.DataFrame:
+    """
+    Order rows round-robin across languages (seeded shuffle within each language),
+    so a run stopped early by API limits still has a balanced mix of languages and splits.
+    """
+    per_lang = [
+        df[df["language_code"] == lang].sample(frac=1.0, random_state=seed).reset_index(drop=True)
+        for lang in TARGET_LANGUAGE_CODES
+    ]
+    for part in per_lang:
+        part["_order"] = range(len(part))
+    out = pd.concat(per_lang, ignore_index=True)
+    out["_lang_rank"] = out["language_code"].map({l: i for i, l in enumerate(TARGET_LANGUAGE_CODES)})
+    return out.sort_values(["_order", "_lang_rank"]).drop(columns=["_order", "_lang_rank"]).reset_index(drop=True)
+
+
 def process_samples(
     samples_df: pd.DataFrame,
     generator: GroqGenerator,
@@ -383,9 +446,14 @@ def process_samples(
         try:
             faithful_answer = generator.generate(sys_faithful, user_faithful, temperature=0.1)
         except Exception as e:
+            # Keep the row but flag it; never silently substitute the reference answer.
             print(f"  [ERROR] Faithful generation failed for {sample_id}: {e}")
-            faithful_answer = ref_answer
+            faithful_answer = ""
             stats["api_errors"] += 1
+
+        faithful_fail, _ = check_faithful_quality(faithful_answer, lang_code)
+        if faithful_fail:
+            stats["generation_failures"] += 1
 
         faithful_row = {
             "sample_id": sample_id,
@@ -399,7 +467,7 @@ def process_samples(
             "label": 0,
             "injection_strategy": None,
             "source_dataset": source_dataset,
-            "possible_generation_failure": False,
+            "possible_generation_failure": faithful_fail,
         }
 
         # 2. Generate Hallucinated Answer (label=1)
@@ -446,6 +514,9 @@ def export_phase2_dataset(df: pd.DataFrame, output_dir: Path = PHASE2_DIR) -> No
     """Export phase2 datasets partitioned by split (CSV + Parquet)."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # A resumed run can append the same (sample_id, label) twice; keep the latest record.
+    df = df.drop_duplicates(subset=["sample_id", "label"], keep="last").reset_index(drop=True)
+
     # Main dataset
     df.to_csv(output_dir / "phase2_dataset.csv", index=False, encoding="utf-8")
     df.to_parquet(output_dir / "phase2_dataset.parquet", index=False)
@@ -463,6 +534,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Phase 2 Answer Generation")
     parser.add_argument("--subset", type=int, default=None, help="Number of samples per language (e.g. 50)")
     parser.add_argument("--model", type=str, default=DEFAULT_MODEL, help="Groq model name")
+    parser.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS, help="Max completion tokens")
+    parser.add_argument("--run-tag", type=str, default="", help="Suffix for a fresh checkpoint file (e.g. v2)")
     args = parser.parse_args()
 
     api_key = get_groq_api_key()
@@ -472,7 +545,8 @@ def main() -> None:
         sys.exit(1)
 
     print(f"Using Groq model: {args.model}")
-    generator = GroqGenerator(api_key=api_key, model=args.model)
+    generator = GroqGenerator(api_key=api_key, model=args.model, max_tokens=args.max_tokens)
+    tag = f"_{args.run_tag}" if args.run_tag else ""
 
     # Load Phase 1 Final Dataset
     phase1_path = FINAL_DIR / "phase1_dataset.parquet"
@@ -486,11 +560,11 @@ def main() -> None:
 
     if args.subset:
         print(f"Selecting balanced subset: {args.subset} samples per language...")
-        samples = select_balanced_subset(df_phase1, n_per_lang=args.subset)
-        checkpoint_file = CHECKPOINT_DIR / f"test_subset_{args.subset}_per_lang.jsonl"
+        samples = interleave_for_processing(select_balanced_subset(df_phase1, n_per_lang=args.subset))
+        checkpoint_file = CHECKPOINT_DIR / f"test_subset_{args.subset}_per_lang{tag}.jsonl"
     else:
         samples = df_phase1
-        checkpoint_file = CHECKPOINT_DIR / "full_phase2_generation.jsonl"
+        checkpoint_file = CHECKPOINT_DIR / f"full_phase2_generation{tag}.jsonl"
 
     print(f"Target sample count: {len(samples)} (yielding {len(samples) * 2} faithful/hallucinated rows)")
 
